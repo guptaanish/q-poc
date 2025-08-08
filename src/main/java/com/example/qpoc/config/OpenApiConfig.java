@@ -13,13 +13,67 @@ import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
+/**
+ * Configuration class for OpenAPI 3.0 documentation and Swagger UI integration.
+ * <p>
+ * This configuration class sets up comprehensive API documentation for the Q-POC
+ * application using OpenAPI 3.0 specification. It provides detailed API information,
+ * server configurations, and organized tag structure for better API navigation
+ * and understanding.
+ * </p>
+ * <p>
+ * The configuration includes:
+ * <ul>
+ *   <li>API metadata (title, description, version, contact information)</li>
+ *   <li>Server definitions for different environments</li>
+ *   <li>Organized tag structure for endpoint categorization</li>
+ *   <li>License information and external documentation links</li>
+ * </ul>
+ * </p>
+ * <p>
+ * The generated documentation is accessible via Swagger UI at /swagger-ui.html
+ * and the OpenAPI specification is available at /v3/api-docs.
+ * </p>
+ *
+ * @author Q-POC Development Team
+ * @version 1.0.0
+ * @since 1.0.0
+ */
 @Slf4j
 @Configuration
 public class OpenApiConfig {
 
+    /**
+     * Server port configuration property for dynamic server URL generation.
+     * <p>
+     * This property is injected from the application configuration and used
+     * to construct the local development server URL. Defaults to 8080 if
+     * not specified in the configuration.
+     * </p>
+     */
     @Value("${server.port:8080}")
     private String serverPort;
 
+    /**
+     * Creates and configures the OpenAPI specification bean.
+     * <p>
+     * This method constructs a comprehensive OpenAPI specification including
+     * API metadata, server configurations, and tag definitions. The specification
+     * is used by Swagger UI to generate interactive API documentation and by
+     * other tools for API discovery and client generation.
+     * </p>
+     * <p>
+     * The configuration includes:
+     * <ul>
+     *   <li>Detailed API information with contact and license details</li>
+     *   <li>Multiple server environments (local development and production)</li>
+     *   <li>Organized tag structure for logical endpoint grouping</li>
+     *   <li>Comprehensive descriptions for each API category</li>
+     * </ul>
+     * </p>
+     *
+     * @return configured OpenAPI specification instance.
+     */
     @Bean
     public OpenAPI customOpenAPI() {
         log.info("Configuring OpenAPI documentation");
