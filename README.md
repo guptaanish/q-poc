@@ -1,6 +1,6 @@
 # Q-POC Spring Boot Application
 
-A Spring Boot application built with Java 21 and Gradle Kotlin DSL, featuring comprehensive SLF4J logging with MDC (Mapped Diagnostic Context) implementation.
+A comprehensive Spring Boot application built with Java 21 and Gradle Kotlin DSL, featuring SLF4J logging with MDC (Mapped Diagnostic Context) implementation and complete Swagger/OpenAPI 3 documentation.
 
 ## Features
 
@@ -12,9 +12,45 @@ A Spring Boot application built with Java 21 and Gradle Kotlin DSL, featuring co
 - H2 Database (for development)
 - Lombok with SLF4J logging
 - **MDC (Mapped Diagnostic Context)** for request tracing
+- **Swagger UI / OpenAPI 3** for API documentation and testing
 - Spring Boot DevTools
 - JUnit 5 for testing
 - Async processing with MDC context preservation
+- Global exception handling with contextual error responses
+
+## API Documentation & Testing
+
+This application includes comprehensive API documentation using **Swagger UI / OpenAPI 3**.
+
+### Swagger UI Access
+
+Once the application is running, you can access:
+
+- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:8080/api-docs`
+
+### Swagger Features
+
+- **Interactive API Testing** - Test all endpoints directly from the browser
+- **Comprehensive Documentation** - Detailed descriptions, examples, and schemas
+- **Request/Response Examples** - Real examples for all endpoints
+- **Schema Validation** - Input validation with error examples
+- **MDC Context Documentation** - Explains request tracing and context management
+- **Organized by Tags** - Endpoints grouped by functionality:
+  - Basic Operations
+  - Logging Demonstration
+  - MDC Context Management
+  - Async Processing
+  - Error Handling
+
+### API Documentation Highlights
+
+- **Contact Information** - Development team contact details
+- **Server Configuration** - Local and production server URLs
+- **Request/Response DTOs** - Structured data models with validation
+- **Error Handling** - Standardized error responses with request tracking
+- **Authentication Headers** - X-User-Id header for user context
+- **Custom Headers** - X-Operation header for operation tracking
 
 ## MDC (Mapped Diagnostic Context) Implementation
 
@@ -98,32 +134,62 @@ The application will start on `http://localhost:8080`
 **Basic Endpoints:**
 - `GET /api/hello` - Returns a hello message
 - `GET /api/health` - Returns application health status
+
+**Data Processing:**
 - `GET /api/process?input=<text>` - Processes input text (demonstrates service logging)
+- `POST /api/process-validated` - Processes data with validation (JSON body)
+
+**Logging Demonstration:**
 - `GET /api/demo-logs` - Demonstrates different log levels
 
 **MDC Demonstration Endpoints:**
 - `GET /api/demo-mdc` - Demonstrates MDC context management
 - `GET /api/context-info` - Returns current MDC context information
-- `GET /api/async-process?input=<text>` - Demonstrates async processing with MDC
 - `POST /api/user/{userId}/process` - User-specific processing with custom context
+
+**Async Processing:**
+- `GET /api/async-process?input=<text>` - Demonstrates async processing with MDC
+
+**Error Handling:**
 - `POST /api/simulate-error?throwError=true` - Error simulation with MDC context
 
-**Development:**
+**Development Tools:**
+- `GET /swagger-ui.html` - Interactive API documentation and testing
+- `GET /api-docs` - OpenAPI 3 JSON specification
 - `GET /h2-console` - H2 database console (development only)
 
-### Testing MDC
+### Testing the API
 
-To see MDC in action:
+#### Using Swagger UI (Recommended)
 
 1. **Start the application**: `./gradlew bootRun`
-2. **Make requests with custom headers**:
-   ```bash
-   curl -H "X-User-Id: john.doe" http://localhost:8080/api/context-info
-   curl -H "X-User-Id: jane.smith" -H "X-Operation: dataProcessing" \
-        -X POST -d "test data" http://localhost:8080/api/user/jane.smith/process
-   ```
-3. **Check logs** to see contextual information in every log entry
-4. **Test async processing**: `curl http://localhost:8080/api/async-process?input=async-test`
+2. **Open Swagger UI**: `http://localhost:8080/swagger-ui.html`
+3. **Test endpoints interactively** with the built-in testing interface
+
+#### Using curl
+
+```bash
+# Basic hello endpoint
+curl http://localhost:8080/api/hello
+
+# With user context
+curl -H "X-User-Id: john.doe" http://localhost:8080/api/context-info
+
+# User-specific processing
+curl -H "X-User-Id: jane.smith" -H "X-Operation: dataProcessing" \
+     -X POST -d "test data" http://localhost:8080/api/user/jane.smith/process
+
+# Validated data processing
+curl -H "Content-Type: application/json" \
+     -X POST -d '{"data":"hello world","options":"uppercase"}' \
+     http://localhost:8080/api/process-validated
+
+# Async processing
+curl http://localhost:8080/api/async-process?input=async-test
+
+# Error simulation
+curl -X POST http://localhost:8080/api/simulate-error?throwError=true
+```
 
 ### Running Tests
 
@@ -131,11 +197,13 @@ To see MDC in action:
 ./gradlew test
 ```
 
-Tests include comprehensive MDC testing:
+Tests include comprehensive coverage:
 - MDC utility functions
 - Filter integration tests
 - Service layer MDC context management
 - Async processing context preservation
+- Swagger integration tests
+- Controller endpoint tests with validation
 
 ### Building for Production
 
@@ -154,9 +222,16 @@ src/
 │   │   └── com/example/qpoc/
 │   │       ├── QPocApplication.java              # Main app with startup logging
 │   │       ├── config/
-│   │       │   └── MDCConfig.java               # MDC configuration for async
+│   │       │   ├── MDCConfig.java               # MDC configuration for async
+│   │       │   └── OpenApiConfig.java           # Swagger/OpenAPI configuration
 │   │       ├── controller/
-│   │       │   └── HelloController.java         # REST controller with MDC
+│   │       │   └── HelloController.java         # REST controller with Swagger annotations
+│   │       ├── dto/
+│   │       │   ├── ContextInfoResponse.java     # Response DTOs for API
+│   │       │   ├── ErrorResponse.java           # Error response DTO
+│   │       │   └── ProcessRequest.java          # Request DTO with validation
+│   │       ├── exception/
+│   │       │   └── GlobalExceptionHandler.java  # Global error handling
 │   │       ├── filter/
 │   │       │   └── MDCFilter.java               # Servlet filter for request context
 │   │       ├── service/
@@ -170,18 +245,37 @@ src/
         └── com/example/qpoc/
             ├── QPocApplicationTests.java         # Context tests with logging
             ├── controller/
-            │   └── HelloControllerTest.java     # Controller tests with logging
+            │   └── HelloControllerTest.java     # Controller tests with validation
             ├── filter/
             │   └── MDCFilterTest.java           # MDC filter integration tests
             ├── service/
             │   └── LoggingServiceTest.java      # Service tests with MDC
+            ├── swagger/
+            │   └── SwaggerIntegrationTest.java  # Swagger integration tests
             └── util/
                 └── MDCUtilTest.java             # MDC utility tests
 ```
 
-## MDC Configuration
+## Configuration
 
-The application uses enhanced logging configuration in `application.properties`:
+### Swagger Configuration
+
+The application uses enhanced Swagger configuration in `application.properties`:
+
+```properties
+# Swagger/OpenAPI Configuration
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.operationsSorter=method
+springdoc.swagger-ui.tagsSorter=alpha
+springdoc.swagger-ui.tryItOutEnabled=true
+springdoc.swagger-ui.filter=true
+springdoc.swagger-ui.displayRequestDuration=true
+springdoc.swagger-ui.persistAuthorization=true
+springdoc.packages-to-scan=com.example.qpoc.controller
+```
+
+### MDC Logging Configuration
 
 ```properties
 # Console logging pattern with MDC
@@ -191,60 +285,27 @@ logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{reque
 logging.pattern.file=%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{requestId:-NO_REQUEST}] [%X{userId:-NO_USER}] [%X{transactionId:-}] [%X{operation:-}] [%X{clientIp:-}] [%X{sessionId:-}] %logger{36} - %msg%n
 ```
 
-### MDC Usage Examples
-
-**Automatic Request Context (via MDCFilter):**
-```java
-// Every HTTP request automatically gets:
-// - requestId: unique UUID
-// - userId: from X-User-Id header or "anonymous"
-// - sessionId: HTTP session ID
-// - clientIp: client IP address
-// - userAgent: browser/client information
-```
-
-**Manual Business Context:**
-```java
-// Set transaction context
-MDCUtil.setTransactionId("tx-12345");
-MDCUtil.setOperation("userDataProcessing");
-
-// Use context in a block
-MDCUtil.withContext("businessProcess", "validation", () -> {
-    log.info("Executing validation"); // Includes all context
-});
-
-// Clear transaction context (keeps request context)
-MDCUtil.clearTransactionContext();
-```
-
-**Async Processing:**
-```java
-@Async("mdcTaskExecutor")
-public CompletableFuture<String> processAsync(String data) {
-    // MDC context is automatically preserved
-    log.info("Processing in async thread"); // Still has request context
-    return CompletableFuture.completedFuture(result);
-}
-```
-
 ## Development
 
 This project demonstrates:
-- **Production-ready MDC implementation** with request tracing
+- **Production-ready API documentation** with Swagger UI
+- **Interactive API testing** without external tools
+- **Comprehensive request/response examples** for all endpoints
+- **Input validation** with detailed error responses
+- **MDC implementation** with request tracing
 - **Async processing** with context preservation
-- **Comprehensive testing** of MDC functionality
-- **Best practices** for structured logging
-- **Spring Boot integration** with filters and configuration
-- **Error handling** with contextual information
+- **Global exception handling** with contextual information
+- **Enterprise-grade logging** practices
 
-### Benefits of MDC Implementation
+### Benefits of This Implementation
 
-1. **Request Tracing**: Every log entry can be traced back to a specific request
-2. **User Context**: Know which user performed which actions
-3. **Transaction Tracking**: Follow business transactions across multiple components
-4. **Debugging**: Easily filter logs by request ID, user, or transaction
-5. **Monitoring**: Better observability in production environments
-6. **Async Support**: Context preserved across thread boundaries
+1. **Self-Documenting API** - Swagger UI provides live, interactive documentation
+2. **Developer Experience** - Easy API testing and exploration
+3. **Request Tracing** - Every log entry can be traced back to a specific request
+4. **User Context** - Know which user performed which actions
+5. **Transaction Tracking** - Follow business transactions across multiple components
+6. **Error Handling** - Standardized error responses with request context
+7. **Validation** - Input validation with clear error messages
+8. **Monitoring Ready** - Better observability in production environments
 
-This implementation follows enterprise-grade logging practices and is ready for production use.
+This implementation follows enterprise-grade practices and is ready for production use with comprehensive API documentation, testing capabilities, and observability features.
