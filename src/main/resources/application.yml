@@ -1,0 +1,116 @@
+# Q-POC Spring Boot Application Configuration
+# YAML format configuration file for comprehensive logging demonstration
+# with MDC (Mapped Diagnostic Context) integration
+
+# Server Configuration
+server:
+  port: 8080
+
+# Spring Application Configuration
+spring:
+  application:
+    name: q-poc
+  
+  # H2 Database Configuration (for development)
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  # JPA Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  
+  # H2 Console Configuration (for development only)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# Logging Configuration with MDC Context Support
+logging:
+  level:
+    # Application-specific logging levels
+    com.example.qpoc: DEBUG
+    
+    # Spring Framework logging levels
+    org.springframework.web: INFO
+    
+    # Hibernate SQL logging
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  
+  pattern:
+    # Console logging pattern with MDC context
+    # %X{key} includes MDC values in the log output with default values
+    console: >-
+      %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level 
+      [%X{requestId:-NO_REQUEST}] [%X{userId:-NO_USER}] 
+      [%X{transactionId:-}] [%X{operation:-}] 
+      %logger{36} - %msg%n
+    
+    # File logging pattern with additional MDC context
+    file: >-
+      %d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level 
+      [%X{requestId:-NO_REQUEST}] [%X{userId:-NO_USER}] 
+      [%X{transactionId:-}] [%X{operation:-}] 
+      [%X{clientIp:-}] [%X{sessionId:-}] 
+      %logger{36} - %msg%n
+  
+  # Optional: File logging configuration (commented out by default)
+  # file:
+  #   name: logs/q-poc.log
+  #   max-size: 10MB
+  #   max-history: 30
+
+# SpringDoc OpenAPI/Swagger Configuration
+springdoc:
+  # API Documentation Configuration
+  api-docs:
+    path: /api-docs
+  
+  # Swagger UI Configuration
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    filter: true
+    display-request-duration: true
+    display-operation-id: false
+    default-models-expand-depth: 1
+    default-model-expand-depth: 1
+    doc-expansion: none
+    persist-authorization: true
+  
+  # Show actuator endpoints in Swagger (if actuator is added later)
+  show-actuator: false
+  
+  # Package scanning configuration
+  packages-to-scan: com.example.qpoc.controller
+
+# Application-specific Configuration (can be extended as needed)
+app:
+  # MDC Configuration
+  mdc:
+    enabled: true
+    include-user-agent: true
+    include-client-ip: true
+    include-session-id: true
+  
+  # Async Processing Configuration
+  async:
+    core-pool-size: 5
+    max-pool-size: 10
+    queue-capacity: 100
+    thread-name-prefix: "MDC-Async-"
+  
+  # Logging Demonstration Configuration
+  logging:
+    demo-enabled: true
+    include-trace-level: false
+    context-cleanup-enabled: true
